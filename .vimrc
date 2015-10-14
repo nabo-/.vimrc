@@ -5,21 +5,40 @@ filetype off
 if has('vim_starting')
   set runtimepath+=~/.vim/bundle/neobundle.vim
 endif
+
+
+if has('mac')
+        let g:vimproc_dll_path = $VIMRUNTIME . '/autoload/vimproc_mac.so'
+endif
+
 call neobundle#begin(expand('~/.vim/bundle/'))
+
+
 NeoBundleFetch 'Shougo/neobundle.vim'
 
 " NeoBundle プラグイン
 
-NeoBundle 'Shougo/unite.vim'
-NeoBundle 'Shougo/unite-outline'
-NeoBundle 'hail2u/vim-css3-syntax'
-NeoBundle 'https://github.com/jelera/vim-javascript-syntax'
-NeoBundle 'https://github.com/tpope/vim-fugitive'
-NeoBundle 'https://github.com/othree/html5.vim'
-NeoBundle 'mattn/emmet-vim'
-NeoBundle 'Shougo/neosnippet.vim'
-NeoBundle 'https://github.com/Shougo/neosnippet-snippets'
+NeoBundle 'https://github.com/Shougo/unite.vim.git'
+NeoBundle 'https://github.com/Shougo/unite-outline.git'
+NeoBundle 'https://github.com/Shougo/neocomplcache.git'
+NeoBundle 'https://github.com/Shougo/neosnippet.vim'
+NeoBundle 'https://github.com/Shougo/neosnippet-snippets.git'
 NeoBundle 'https://github.com/Shougo/neocomplete.vim'
+NeoBundle 'https://github.com/Shougo/vimshell.git'
+NeoBundle 'https://github.com/Shougo/vimfiler.git'
+NeoBundle 'https://github.com/Shougo/vimproc.git'
+NeoBundle 'https://github.com/scrooloose/syntastic.git'
+NeoBundle 'https://github.com/pangloss/vim-javascript.git'
+
+
+NeoBundle 'https://github.com/tpope/vim-fugitive'
+NeoBundle 'https://github.com/othree/html5.vim.git'
+NeoBundle 'mattn/emmet-vim'
+NeoBundle 'https://github.com/mustache/vim-mustache-handlebars.git'
+NeoBundle 'https://github.com/cakebaker/scss-syntax.vim.git'
+NeoBundle 'https://github.com/othree/javascript-libraries-syntax.vim.git'
+NeoBundle 'https://github.com/mxw/vim-jsx.git'
+
 NeoBundle 'tpope/vim-surround'
 NeoBundle 'Townk/vim-autoclose'
 NeoBundle 'ctrlpvim/ctrlp.vim'
@@ -32,8 +51,9 @@ NeoBundle 'jpo/vim-railscasts-theme'
 NeoBundle 'altercation/vim-colors-solarized'
 NeoBundle 'vim-scripts/Wombat'
 NeoBundle 'vim-scripts/rdark'
-NeoBundle 'itchyny/lightline.vim'
-NeoBundle 'scrooloose/nerdtree'
+NeoBundle 'https://github.com/itchyny/lightline.vim.git'
+NeoBundle 'https://github.com/scrooloose/nerdtree.git'
+NeoBundle 'https://github.com/jistr/vim-nerdtree-tabs.git'
 NeoBundle 'ujihisa/unite-colorscheme'
 
 call neobundle#end()
@@ -41,11 +61,11 @@ call neobundle#end()
 NeoBundleCheck
 
 filetype plugin indent on
-filetype indent on
 
 syntax on
 
-
+set ruler
+set title
 set mouse=a
 set number
 set clipboard=unnamed
@@ -61,31 +81,156 @@ imap <C-j> <esc>
 "------------------------------------
 " emmet-vim
 "------------------------------------
+let g:user_emmet_leader_key='<c-y>'
 let g:user_emmet_settings = {
     \    'variables': {
     \      'lang': "ja"
     \    },
-    \   'indentation': '  '
+    \   'indentation': ' '
     \ }
+
+
+
+
+"------------------------------------
+" unite.vim
+"------------------------------------
+"unite prefix key.
+nnoremap [unite] <Nop>
+nmap <Space>f [unite]
+
+"unite general settings
+"インサートモードで開始
+
+let g:unite_enable_start_insert = 1
+"最近開いたファイル履歴の保存数
+
+let g:unite_source_file_mru_limit = 20
+
+"file_mruの表示フォーマットを指定。空にすると表示スピードが高速化される
+let g:unite_source_file_mru_filename_format = ''
+
+"現在開いているファイルのディレクトリ下のファイル一覧。
+"開いていない場合はカレントディレクトリ
+noremap <C-U> :Unite -buffer-name=file file<CR>
+"nnoremap <silent> [unite]f :<C-u>UniteWithBufferDir -buffer-name=files file<CR>
+
+"バッファ一覧
+noremap <C-B> :Unite buffer<CR>
+"nnoremap <silent> [unite]b :<C-u>Unite buffer<CR>
+
+"レジスタ一覧
+nnoremap <silent> [unite]r :<C-u>Unite -buffer-name=register register<CR>
+
+"最近使用したファイル一覧
+nnoremap <silent> [unite]m :<C-u>Unite file_mru<CR>
+
+"ブックマーク一覧
+nnoremap <silent> [unite]c :<C-u>Unite bookmark<CR>
+
+"ブックマークに追加
+nnoremap <silent> [unite]a :<C-u>UniteBookmarkAdd<CR>
+
+"uniteを開いている間のキーマッピング
+autocmd FileType unite call s:unite_my_settings()
+function! s:unite_my_settings()"{{{
+
+  "ESCでuniteを終了
+  nmap <buffer> <ESC> <Plug>(unite_exit)
+
+  "入力モードのときjjでノーマルモードに移動
+  imap <buffer> jj <Plug>(unite_insert_leave)
+
+  "入力モードのときctrl+wでバックスラッシュも削除
+  imap <buffer> <C-w> <Plug>(unite_delete_backward_path)
+
+  "ctrl+jで縦に分割して開く
+  nnoremap <silent> <buffer> <expr> <C-j> unite#do_action('split')
+  inoremap <silent> <buffer> <expr> <C-j> unite#do_action('split')
+
+  "ctrl+jで横に分割して開く
+  nnoremap <silent> <buffer> <expr> <C-l> unite#do_action('vsplit')
+  inoremap <silent> <buffer> <expr> <C-l> unite#do_action('vsplit')
+
+  "ctrl+oでその場所に開く
+  nnoremap <silent> <buffer> <expr> <C-o> unite#do_action('open')
+  inoremap <silent> <buffer> <expr> <C-o> unite#do_action('open')
+
+endfunction"}}}
+
+
+
+
+"------------------------------------
+"vimfiler
+"------------------------------------
+let g:vimfiler_as_default_explorer = 1
+
+
+
+"------------------------------------
+"css color
+"------------------------------------
+let g:cssColorVimDoNotMessMyUpdatetime = 1
+
+
+
+"------------------------------------
+"markdown
+"------------------------------------
+autocmd BufRead,BufNewFile *.mkd  setfiletype mkd
+autocmd BufRead,BufNewFile *.md  setfiletype mkd
+
+autocmd BufNewFile,BufRead *.css,*.less set filetype=css
+
+
 
 "------------------------------------
 " nerdtree setting
 "------------------------------------
 
-nnoremap <silent><C-e> :NERDTreeToggle<CR>
+"nnoremap <silent><C-e> :NERDTreeToggle<CR>
+
+autocmd vimenter * NERDTree
+let g:NERDTreeShowHidden = 1
+
 
 
 "------------------------------------
-" vim css3 syntax setting
+" js lib syntax
+"------------------------------------
+let g:used_javascript_libs = 'underscore, backbone, angularjs, requirejs, jquery, react'
+
+
+"------------------------------------
+" sass
+"------------------------------------
+au! BufRead,BufNewFile *.sass         setfiletype sass
+
+
+"------------------------------------
+" mustache
+"------------------------------------
+let g:mustache_abbreviations = 1
+
+
+
+"------------------------------------
+" ime
 "------------------------------------
 
-augroup VimCSS3Syntax
-  autocmd!
+set iminsert=0
+set imsearch=0
 
-  autocmd FileType css setlocal iskeyword+=-
-augroup END
+set modifiable
+set write
 
+set noexpandtab
 
+set showcmd
+set cmdheight=1
+
+set showmatch
 
 
 "------------------------------------
@@ -163,6 +308,10 @@ function! LightLineMode()
 endfunction
 
 
+
+
+
+
 "------------------------------------
 "neocomplete setting
 "------------------------------------
@@ -238,3 +387,8 @@ endif
 " For perlomni.vim setting.
 " https://github.com/c9s/perlomni.vim
 let g:neocomplete#sources#omni#input_patterns.perl = '\h\w*->\h\w*\|\h\w*::'
+
+
+
+
+cd $HOME
